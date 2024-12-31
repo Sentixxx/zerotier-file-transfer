@@ -4,6 +4,8 @@
 #include <cstring>
 #include <unistd.h>
 
+std::string generateUniqueTapName();
+
 VPort::VPort(const std::string& server_ip, int server_port) {
     try {
         // 使用generateUniqueTapName获取可用的TAP设备名

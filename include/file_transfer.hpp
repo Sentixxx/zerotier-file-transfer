@@ -11,38 +11,25 @@
 class FileTransfer {
 public:
     FileTransfer() = default;
-    
-    FileTransfer(int port, const std::string& ip_addr, const std::string& file_path)
-        : port_(port), ip_addr_(ip_addr), file_path_(file_path) {}
-    
-    virtual ~FileTransfer() = default;
-    
-    FileTransfer(const FileTransfer&) = delete;
-    FileTransfer& operator=(const FileTransfer&) = delete;
-    
-    FileTransfer(FileTransfer&&) noexcept = default;
-    FileTransfer& operator=(FileTransfer&&) noexcept = default;
-    
-    bool setIp(const std::string& ip_addr);
-    bool setPort(int port);
-    bool setFilePath(const std::string& file_path);
+    ~FileTransfer() {
+        if (sock_fd_ >= 0) close(sock_fd_);
+    }
+
     bool sendFile(const std::string& msg, const std::string& file_path);
     bool recvFile(const std::string& msg, const std::string& file_path);
     
-    [[nodiscard]] const std::string& getIpAddr() const noexcept { return ip_addr_; }
-    [[nodiscard]] int getPort() const noexcept { return port_; }
-    [[nodiscard]] const std::string& getFilePath() const noexcept { return file_path_; }
+    void setAddress(const std::string& ip, int port) {
+        ip_addr_ = ip;
+        port_ = port;
+    }
 
 private:
-    static constexpr int kBufferSize = 1024;
-    static constexpr int kInvalidSocket = -1;
-
-    int port_{0};
+    static constexpr int kBufferSize = 8192;
+    int sock_fd_{-1};
     std::string ip_addr_;
-    std::string file_path_;
-
-    int server_socket_{kInvalidSocket};
-    struct sockaddr_in server_addr_{};
+    int port_{0};
+    
+    bool initTcpConnection(const std::string& ip, int port, bool is_server);
 };
 
 #endif // FILE_TRANSFER_HPP 

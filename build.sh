@@ -6,15 +6,11 @@ if ! command -v cmake &> /dev/null; then
     exit 1
 fi
 
+# 清理上次编译结果
+rm -rf build/*
+
 # 创建项目结构
 mkdir -p include src build
-
-# 移动源文件到正确的位置
-mv tap_device.hpp include/ 2>/dev/null || true
-mv vport.hpp include/ 2>/dev/null || true
-mv tap_device.cpp src/ 2>/dev/null || true
-mv vport.cpp src/ 2>/dev/null || true
-mv main.cpp src/ 2>/dev/null || true
 
 # 进入build目录
 cd build

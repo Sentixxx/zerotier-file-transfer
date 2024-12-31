@@ -33,6 +33,7 @@ add_executable(vport
     src/main.cpp
     src/tap_device.cpp
     src/vport.cpp
+    src/file_transfer.cpp
 )
 
 # 查找并链接pthread库
