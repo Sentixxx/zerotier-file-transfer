@@ -2,26 +2,33 @@
 #include <iostream>
 #include <cassert>
 #include <cstring>
+#include <unistd.h>
 
 VPort::VPort(const std::string& server_ip, int server_port) {
-    // TapDevice的构造函数会处理设备创建
-    tap_device_ = TapDevice("tapyuan");
+    try {
+        // 使用generateUniqueTapName获取可用的TAP设备名
+        std::string tap_name = generateUniqueTapName();
+        tap_device_ = TapDevice(tap_name);
 
-    // 创建socket
-    vport_sockfd_ = socket(AF_INET, SOCK_DGRAM, 0);
-    if (vport_sockfd_ < 0) {
-        throw std::runtime_error("Failed to create socket: " + std::string(strerror(errno)));
+        // 创建socket
+        vport_sockfd_ = socket(AF_INET, SOCK_DGRAM, 0);
+        if (vport_sockfd_ < 0) {
+            throw std::runtime_error("Failed to create socket: " + std::string(strerror(errno)));
+        }
+
+        // 设置VSwitch地址
+        vswitch_addr_.sin_family = AF_INET;
+        vswitch_addr_.sin_port = htons(server_port);
+        if (inet_pton(AF_INET, server_ip.c_str(), &vswitch_addr_.sin_addr) != 1) {
+            throw std::runtime_error("Failed to set IP address: " + std::string(strerror(errno)));
+        }
+
+        std::cout << "[VPort] TAP device name: " << tap_device_.getName()
+                  << ", VSwitch: " << server_ip << ":" << server_port << std::endl;
     }
-
-    // 设置VSwitch地址
-    vswitch_addr_.sin_family = AF_INET;
-    vswitch_addr_.sin_port = htons(server_port);
-    if (inet_pton(AF_INET, server_ip.c_str(), &vswitch_addr_.sin_addr) != 1) {
-        throw std::runtime_error("Failed to set IP address: " + std::string(strerror(errno)));
+    catch (const std::exception& e) {
+        throw std::runtime_error("Failed to create TAP device: " + std::string(e.what()));
     }
-
-    std::cout << "[VPort] TAP device name: " << tap_device_.getName()
-              << ", VSwitch: " << server_ip << ":" << server_port << std::endl;
 }
 
 VPort::~VPort() {
@@ -106,4 +113,14 @@ void VPort::forwardEtherDataToTap() {
                    ntohs(hdr->ether_type), ether_datasz);
         }
     }
+}
+
+std::string generateUniqueTapName() {
+    for (int i = 0; i < 10000; ++i) {
+        std::string name = "tap" + std::to_string(i);
+        if (access(("/sys/class/net/" + name).c_str(), F_OK) == -1) {
+            return name;
+        }
+    }
+    throw std::runtime_error("无法找到可用的TAP设备名称");
 } 
