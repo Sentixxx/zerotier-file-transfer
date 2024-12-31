@@ -97,7 +97,7 @@ In this project, the TAP device is used to connect client computers and the virt
 ## How to build
 Just run
 ```
-make
+./build.sh
 ```
 
 ## How to deploy
