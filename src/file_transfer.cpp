@@ -72,7 +72,7 @@ bool FileTransfer::sendFile(const std::string& msg, const std::string& file_path
 }
 
 bool FileTransfer::recvFile(const std::string& msg, const std::string& file_path) {
-    if (ip_addr_.empty() || port_ <= 0) {
+    if (port_ <= 0) {
         std::cerr << "Address not set" << std::endl;
         return false;
     }
@@ -153,7 +153,9 @@ bool FileTransfer::initTcpConnection(const std::string& ip, int port, bool is_se
     struct sockaddr_in addr{};
     addr.sin_family = AF_INET;
     addr.sin_port = htons(port);
-    addr.sin_addr.s_addr = inet_addr(ip.c_str());
+    addr.sin_addr.s_addr = is_server ? 
+        (ip.empty() ? INADDR_ANY : inet_addr(ip.c_str())) : 
+        inet_addr(ip.c_str());
 
     if (is_server) {
         // 服务器模式：绑定并监听

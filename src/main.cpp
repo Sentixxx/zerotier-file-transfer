@@ -8,13 +8,18 @@
 #include <unistd.h>
 #include <libgen.h>
 #include <cstring>
+#include <thread>
+#include <chrono>
 
 namespace {
     std::unique_ptr<VPort> g_vport;
     volatile sig_atomic_t g_running = 1;
+    volatile sig_atomic_t g_transfer_running = 1;
 
     void signalHandler(int) {
         g_running = 0;
+        g_transfer_running = 0;
+        std::cout << "\n检测到中断信号，正在退出...\n" << std::flush;
     }
 
     void clearInputBuffer() {
@@ -88,6 +93,35 @@ namespace {
     }
 }
 
+bool validateAddress(const std::string& addr, int port) {
+    try {
+        // 检查端口范围
+        if (port <= 0 || port > 65535) {
+            std::cout << "无效的端口号: " << port << "\n"; 
+            return false;
+        }
+
+        if(addr == "") {
+            return true;
+        }
+        
+        // 检查IP地址格式
+        struct sockaddr_in sa;
+        if (inet_pton(AF_INET, addr.c_str(), &(sa.sin_addr)) != 1) {
+            std::cout << "无效的IP地址格式: " << addr << "\n";
+            return false;
+        }
+
+
+
+        return true;
+    }
+    catch (const std::exception& e) {
+        std::cout << "地址验证失败: " << e.what() << "\n";
+        return false;
+    }
+}
+
 int main(int argc, char const *argv[]) {
     try {
         if (argc != 3) {
@@ -112,7 +146,6 @@ int main(int argc, char const *argv[]) {
             if (!getTransferMode(mode)) {
                 break;
             }
-
             std::string file_path = getFilePath();
             
             // 发送模式需要检查源文件存在,接收模式检查目标路径有效
@@ -121,10 +154,25 @@ int main(int argc, char const *argv[]) {
             }
 
             FileTransfer ft;
-
             try {
                 switch (mode) {
                     case 1: {
+                        std::cout << "请输入远端地址: ";
+                        std::string remote_addr;
+                        std::getline(std::cin, remote_addr);
+                        std::cout << "请输入远端端口号：";
+                        int remote_port;
+                        std::cin >> remote_port;
+                        clearInputBuffer();
+                        if(!validateAddress(remote_addr,remote_port)) {
+                            continue;
+                        }
+                        ft.setAddress(remote_addr,remote_port);
+                        
+                        std::cout << "请确保接收方已经在等待接收...\n";
+                        std::cout << "按回车键开始发送...";
+                        std::cin.get();
+                        
                         std::cout << "正在发送文件 " << file_path << "...\n";
                         if (ft.sendFile("", file_path)) {
                             std::cout << "文件发送成功.\n";
@@ -134,10 +182,47 @@ int main(int argc, char const *argv[]) {
                         break;
                     }
                     case 2: {
-                        std::cout << "正在接收文件到 " << file_path << "...\n";
-                        if (ft.recvFile("", file_path)) {
+                        std::cout << "请输入监听端口号: ";
+                        int listen_port;
+                        std::cin >> listen_port;
+                        clearInputBuffer();
+                        if(!validateAddress("", listen_port)) {
+                            continue;
+                        }
+                        ft.setAddress("", listen_port);
+                        
+                        std::cout << "正在等待发送方连接 (端口: " << listen_port << ")...\n";
+                        std::cout << "按Ctrl+C取消等待\n";
+                        
+                        g_transfer_running = 1;
+                        bool result = false;
+                        
+                        while (g_transfer_running) {
+                            try {
+                                result = ft.recvFile("", file_path);
+                                if (result) break;
+                                
+                                if (!g_transfer_running) {
+                                    std::cout << "\n传输已取消\n";
+                                    break;
+                                }
+                                
+                                std::cout << "接收失败,正在重试...\n";
+                                std::this_thread::sleep_for(std::chrono::seconds(1));
+                            }
+                            catch (const std::exception& e) {
+                                if (!g_transfer_running) {
+                                    std::cout << "\n传输已取消\n";
+                                    break;
+                                }
+                                std::cerr << "错误: " << e.what() << std::endl;
+                                std::this_thread::sleep_for(std::chrono::seconds(1));
+                            }
+                        }
+                        
+                        if (result) {
                             std::cout << "文件接收成功.\n";
-                        } else {
+                        } else if (g_transfer_running) {
                             std::cout << "文件接收失败.\n";
                         }
                         break;
