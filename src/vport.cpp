@@ -4,6 +4,9 @@
 #include <cstring>
 #include <unistd.h>
 
+// 定义静态成员变量（必须在类外定义）
+bool VPort::verbose_ = true;
+
 std::string generateUniqueTapName();
 
 VPort::VPort(const std::string& server_ip, int server_port) {
@@ -103,16 +106,18 @@ void VPort::forwardEtherDataToTap() {
                          << ether_datasz << ", sendsz=" << sendsz << std::endl;
             }
 
-            printf("[VPort] Forward to TAP device:"
-                   " dhost<%02x:%02x:%02x:%02x:%02x:%02x>"
-                   " shost<%02x:%02x:%02x:%02x:%02x:%02x>"
-                   " type<%04x>"
-                   " datasz=<%d>\n",
-                   hdr->ether_dhost[0], hdr->ether_dhost[1], hdr->ether_dhost[2],
-                   hdr->ether_dhost[3], hdr->ether_dhost[4], hdr->ether_dhost[5],
-                   hdr->ether_shost[0], hdr->ether_shost[1], hdr->ether_shost[2],
-                   hdr->ether_shost[3], hdr->ether_shost[4], hdr->ether_shost[5],
-                   ntohs(hdr->ether_type), ether_datasz);
+            if (verbose_) {
+                printf("[VPort] Forward to TAP device:"
+                       " dhost<%02x:%02x:%02x:%02x:%02x:%02x>"
+                       " shost<%02x:%02x:%02x:%02x:%02x:%02x>"
+                       " type<%04x>"
+                       " datasz=<%d>\n",
+                       hdr->ether_dhost[0], hdr->ether_dhost[1], hdr->ether_dhost[2],
+                       hdr->ether_dhost[3], hdr->ether_dhost[4], hdr->ether_dhost[5],
+                       hdr->ether_shost[0], hdr->ether_shost[1], hdr->ether_shost[2],
+                       hdr->ether_shost[3], hdr->ether_shost[4], hdr->ether_shost[5],
+                       ntohs(hdr->ether_type), ether_datasz);
+            }
         }
     }
 }

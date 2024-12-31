@@ -2,7 +2,9 @@
 #include <cstring>
 #include <fstream>
 #include <iostream>
-#include <filesystem>
+#include <experimental/filesystem>
+
+namespace fs = std::experimental::filesystem;
 
 bool FileTransfer::sendFile(const std::string& msg, const std::string& file_path) {
     if (ip_addr_.empty() || port_ <= 0) {
@@ -11,12 +13,12 @@ bool FileTransfer::sendFile(const std::string& msg, const std::string& file_path
     }
 
     // 检查文件是否存在并获取大小
-    std::filesystem::path fs_path(file_path);
-    if (!std::filesystem::exists(fs_path)) {
+    fs::path fs_path(file_path);
+    if (!fs::exists(fs_path)) {
         std::cerr << "File does not exist: " << file_path << std::endl;
         return false;
     }
-    uint64_t file_size = std::filesystem::file_size(fs_path);
+    uint64_t file_size = fs::file_size(fs_path);
 
     // 作为客户端连接服务器
     if (!initTcpConnection(ip_addr_, port_, false)) {
