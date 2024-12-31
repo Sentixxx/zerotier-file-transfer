@@ -16,6 +16,10 @@ public:
     void start();
     void stop();
 
+    static void setVerbose(bool verbose) {
+        verbose_ = verbose;
+    }
+
 private:
     static constexpr int kBufferSize = 1024;
     
@@ -29,6 +33,8 @@ private:
     
     std::unique_ptr<std::thread> up_forwarder_;
     std::unique_ptr<std::thread> down_forwarder_;
+
+    static bool verbose_;
 };
 
 #endif // VPORT_HPP 

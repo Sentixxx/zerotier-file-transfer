@@ -108,6 +108,9 @@ int main(int argc, char const *argv[]) {
         std::cout << "连接成功!\n";
 
         while (g_running) {
+            // 在显示传输界面前关闭详细输出
+            VPort::setVerbose(false);
+            
             int mode;
             if (!getTransferMode(mode)) {
                 break;
@@ -121,6 +124,7 @@ int main(int argc, char const *argv[]) {
             }
 
             FileTransfer ft;
+            ft.setAddress(server_ip, server_port);
 
             try {
                 switch (mode) {
