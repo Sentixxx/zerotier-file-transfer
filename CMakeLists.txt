@@ -6,6 +6,10 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 7.0)
         message(FATAL_ERROR "GCC version must be at least 7.0!")
     endif()
+    # GCC 7/8 需要链接 stdc++fs
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
+        link_libraries(stdc++fs)
+    endif()
 endif()
 
 # C++17 要求
@@ -15,6 +19,9 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 # 添加编译选项
 add_compile_options(-Wall -Wextra -Wpedantic)
+
+# 添加 filesystem 库支持
+link_libraries(stdc++fs)
 
 # 检查必要的头文件
 include(CheckIncludeFileCXX)
