@@ -71,16 +71,16 @@ void VPort::forwardEtherDataToVSwitch() {
                          << ether_datasz << ", sendsz=" << sendsz << std::endl;
             }
 
-            printf("[VPort] Sent to VSwitch:"
-                   " dhost<%02x:%02x:%02x:%02x:%02x:%02x>"
-                   " shost<%02x:%02x:%02x:%02x:%02x:%02x>"
-                   " type<%04x>"
-                   " datasz=<%d>\n",
-                   hdr->ether_dhost[0], hdr->ether_dhost[1], hdr->ether_dhost[2],
-                   hdr->ether_dhost[3], hdr->ether_dhost[4], hdr->ether_dhost[5],
-                   hdr->ether_shost[0], hdr->ether_shost[1], hdr->ether_shost[2],
-                   hdr->ether_shost[3], hdr->ether_shost[4], hdr->ether_shost[5],
-                   ntohs(hdr->ether_type), ether_datasz);
+            // printf("[VPort] Sent to VSwitch:"
+            //        " dhost<%02x:%02x:%02x:%02x:%02x:%02x>"
+            //        " shost<%02x:%02x:%02x:%02x:%02x:%02x>"
+            //        " type<%04x>"
+            //        " datasz=<%d>\n",
+            //        hdr->ether_dhost[0], hdr->ether_dhost[1], hdr->ether_dhost[2],
+            //        hdr->ether_dhost[3], hdr->ether_dhost[4], hdr->ether_dhost[5],
+            //        hdr->ether_shost[0], hdr->ether_shost[1], hdr->ether_shost[2],
+            //        hdr->ether_shost[3], hdr->ether_shost[4], hdr->ether_shost[5],
+            //        ntohs(hdr->ether_type), ether_datasz);
         }
     }
 }
@@ -103,16 +103,16 @@ void VPort::forwardEtherDataToTap() {
                          << ether_datasz << ", sendsz=" << sendsz << std::endl;
             }
 
-            printf("[VPort] Forward to TAP device:"
-                   " dhost<%02x:%02x:%02x:%02x:%02x:%02x>"
-                   " shost<%02x:%02x:%02x:%02x:%02x:%02x>"
-                   " type<%04x>"
-                   " datasz=<%d>\n",
-                   hdr->ether_dhost[0], hdr->ether_dhost[1], hdr->ether_dhost[2],
-                   hdr->ether_dhost[3], hdr->ether_dhost[4], hdr->ether_dhost[5],
-                   hdr->ether_shost[0], hdr->ether_shost[1], hdr->ether_shost[2],
-                   hdr->ether_shost[3], hdr->ether_shost[4], hdr->ether_shost[5],
-                   ntohs(hdr->ether_type), ether_datasz);
+            // printf("[VPort] Forward to TAP device:"
+            //        " dhost<%02x:%02x:%02x:%02x:%02x:%02x>"
+            //        " shost<%02x:%02x:%02x:%02x:%02x:%02x>"
+            //        " type<%04x>"
+            //        " datasz=<%d>\n",
+            //        hdr->ether_dhost[0], hdr->ether_dhost[1], hdr->ether_dhost[2],
+            //        hdr->ether_dhost[3], hdr->ether_dhost[4], hdr->ether_dhost[5],
+            //        hdr->ether_shost[0], hdr->ether_shost[1], hdr->ether_shost[2],
+            //        hdr->ether_shost[3], hdr->ether_shost[4], hdr->ether_shost[5],
+            //        ntohs(hdr->ether_type), ether_datasz);
         }
     }
 }
