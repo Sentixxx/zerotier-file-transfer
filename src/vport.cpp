@@ -12,8 +12,12 @@ static std::string g_tap_name;
 static void cleanupTap() {
     if (!g_tap_name.empty()) {
         std::string cmd = "ip link delete " + g_tap_name;
-        system(cmd.c_str());
-        std::cout << "已删除TAP设备: " << g_tap_name << std::endl;
+        int ret = system(cmd.c_str());
+        if (ret == 0) {
+            std::cout << "已删除TAP设备: " << g_tap_name << std::endl;
+        } else {
+            std::cerr << "删除TAP设备失败: " << g_tap_name << ", 错误码: " << ret << std::endl;
+        }
     }
 }
 
