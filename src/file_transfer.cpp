@@ -3,6 +3,8 @@
 #include <fstream>
 #include <iostream>
 #include <filesystem>
+#include <chrono>
+#include <thread>
 
 bool FileTransfer::sendFile(const std::string& msg, const std::string& file_path) {
     if (ip_addr_.empty() || port_ <= 0) {
@@ -162,6 +164,22 @@ bool FileTransfer::initTcpConnection(const std::string& ip, int port, bool is_se
         if (bind(sock_fd_, (struct sockaddr*)&addr, sizeof(addr)) < 0) return false;
         if (listen(sock_fd_, 1) < 0) return false;
     } else {
+        // 在连接前先ping目标地址以确保可达
+        std::string ping_cmd = "ping -c 2 -W 2 " + ip + " > /dev/null 2>&1";
+        int retry_count = 3;
+        bool ping_success = false;
+        while (retry_count-- > 0) {
+            if (system(ping_cmd.c_str()) == 0) {
+                ping_success = true;
+                break;
+            }
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+        }
+        if (!ping_success) {
+            std::cerr << "多次尝试后仍无法ping通目标地址: " << ip << std::endl;
+            close(sock_fd_);
+            return false;
+        }
         // 客户端模式：连接服务器
         if (connect(sock_fd_, (struct sockaddr*)&addr, sizeof(addr)) < 0) return false;
     }
