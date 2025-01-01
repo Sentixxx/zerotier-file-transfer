@@ -6,11 +6,45 @@
 
 std::string generateUniqueTapName();
 
+
+static std::string g_tap_name;  
+
+static void cleanupTap() {
+    if (!g_tap_name.empty()) {
+        std::string cmd = "ip link delete " + g_tap_name;
+        system(cmd.c_str());
+        std::cout << "已删除TAP设备: " << g_tap_name << std::endl;
+    }
+}
+
 VPort::VPort(const std::string& server_ip, int server_port) {
     try {
         // 使用generateUniqueTapName获取可用的TAP设备名
         std::string tap_name = generateUniqueTapName();
+        g_tap_name = tap_name;  // 保存设备名
         tap_device_ = TapDevice(tap_name);
+        // 提示用户输入IP地址
+        std::string ip_addr;
+        std::cout << "请输入TAP设备的IP地址 (格式: xxx.xxx.xxx.xxx/xx): ";
+        std::getline(std::cin, ip_addr);
+
+        // 构建ip addr add命令
+        std::string cmd = "ip addr add " + ip_addr + " dev " + tap_name;
+        if(system(cmd.c_str()) != 0) {
+            throw std::runtime_error("设置IP地址失败");
+        }
+
+        // 注册退出函数
+        std::atexit(cleanupTap);
+
+        // 启用TAP设备
+        cmd = "ip link set " + tap_name + " up";
+        if(system(cmd.c_str()) != 0) {
+            throw std::runtime_error("启用TAP设备失败"); 
+        }
+
+
+        std::cout << "TAP设备 " << tap_name << " 已配置IP地址: " << ip_addr << std::endl;
 
         // 创建socket
         vport_sockfd_ = socket(AF_INET, SOCK_DGRAM, 0);
