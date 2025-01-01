@@ -25,38 +25,6 @@ static void cleanupTap()
     }
 }
 
-// 检查IP地址是否已被使用
-static bool isIpInUse(const std::string &ip)
-{
-    // 去掉CIDR后缀
-    std::string pure_ip = ip.substr(0, ip.find('/'));
-
-    // 使用ping命令检查IP是否活跃
-    std::string cmd = "ping -c 1 -W 1 " + pure_ip + " > /dev/null 2>&1";
-    return system(cmd.c_str()) == 0;
-}
-
-static std::string generateIpAddress()
-{
-    static int last_octet = 1;
-    std::string base_ip = "192.168.100.";
-
-    // 尝试找到可用的IP地址
-    while (last_octet <= 254)
-    {
-        std::string ip = base_ip + std::to_string(last_octet) + "/24";
-        last_octet++;
-
-        if (!isIpInUse(ip))
-        {
-            return ip;
-        }
-        std::cout << "IP " << ip << " 已被使用，尝试下一个...\n";
-    }
-
-    throw std::runtime_error("IP地址池已耗尽");
-}
-
 static std::string requestIpFromVSwitch(int sockfd, const sockaddr_in &vswitch_addr)
 {
     // 创建简单的请求消息
@@ -179,7 +147,7 @@ VPort::VPort(const std::string &server_ip, int server_port)
             if (system(cmd.c_str()) != 0)
             {
                 throw std::runtime_error("设置IP地址失败");
-            }
+            }   
             std::cout << "已设置IP地址: " << ip_addr << std::endl;
         }
 
