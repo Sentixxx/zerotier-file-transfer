@@ -3,6 +3,7 @@
 
 import socket
 import sys
+import json
 
 # parse parameters
 server_port = None
@@ -19,10 +20,34 @@ vserver_sock.bind(server_addr)
 print(f"[VSwitch] Started at {server_addr[0]}:{server_addr[1]}")
 
 mac_table = {}
+ip_pool = []
+used_ips = set()
+
+# 初始化IP地址池
+for i in range(2, 255):
+    ip_pool.append(f"192.168.100.{i}")
 
 while True:
   # 1. read ethernet frame from VPort
   data, vport_addr = vserver_sock.recvfrom(1518)
+
+  # 检查是否为控制消息(第一个字节为0)
+  if len(data) > 0 and data[0] == 0:
+    try:
+      msg = json.loads(data[1:].decode())
+      if msg["type"] == "ip_request":
+        # 分配IP地址
+        if ip_pool:
+          ip = ip_pool.pop(0)
+          used_ips.add(ip)
+          response = {"ip": ip}
+          print(f"[VSwitch] 分配IP地址 {ip} 给 {vport_addr}")
+        else:
+          response = {"error": "IP地址池已耗尽"}
+        vserver_sock.sendto(json.dumps(response).encode(), vport_addr)
+        continue
+    except:
+      pass
 
   # 2. parse ethernet frame
   eth_header = data[:14]
